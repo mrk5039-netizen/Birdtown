@@ -54,19 +54,37 @@ python main.py --interactive
 By default everything runs in **dry-run**: review the drafts in `data/outbox/`
 and the pipeline in `data/crm.jsonl`. Add `--live` only with authorization.
 
-## Wiring in real integrations
+## Wiring in real integrations (live MCP)
 
-The environment this was built for exposes ZoomInfo, Gmail, Google Calendar,
-Slack, and Notion as MCP tools. The code ships with deterministic local stubs
-so it runs without accounts; each is marked `# INTEGRATION:` in `tools.py` with
-the exact MCP tool to call:
+The agent runs on **two tool layers**:
 
-| Step              | Stub returns        | Swap in (MCP)                                              |
-| ----------------- | ------------------- | --------------------------------------------------------- |
-| `research_account`| placeholder profile | `mcp__ZoomInfo__account_research`, `enrich_companies`, `search_intent` |
-| `queue_outreach_email` | local draft    | `mcp__Gmail__create_draft`                                |
-| `propose_meeting` | booking link only   | `mcp__Google_Calendar__suggest_time` + `create_event`     |
-| `log_lead`        | `data/crm.jsonl`    | `mcp__Slack__slack_send_message`, `mcp__Notion__notion-create-pages` |
+- **Local tools** (`tools.py`) — the policy brain: ICP scoring, the outreach
+  compliance gate, and CRM bookkeeping run in code we control.
+- **Remote MCP servers** (`integrations.py`) — the real I/O: ZoomInfo, Gmail,
+  Google Calendar, and Slack are reached through Anthropic's `mcp_servers`
+  connector, so Claude calls their tools directly and the provider executes
+  them server-side.
+
+To go live, list your MCP servers in a JSON file and point `SDR_MCP_CONFIG` at it:
+
+```bash
+cp mcp_servers.example.json mcp_servers.json   # edit URLs to your real endpoints
+export SDR_MCP_CONFIG=$PWD/mcp_servers.json
+export ZOOMINFO_MCP_TOKEN=... GMAIL_MCP_TOKEN=...   # tokens stay in env, not the file
+```
+
+When servers are connected the agent automatically uses them, keeping the local
+layer as the gate:
+
+| Step              | Local (always) | Live MCP tool                                  |
+| ----------------- | -------------- | ---------------------------------------------- |
+| Research          | `score_lead`   | ZoomInfo `account_research`, `enrich_companies`, `search_intent` |
+| Outreach          | `queue_outreach_email` (compliance gate) | Gmail `create_draft` (after the gate passes) |
+| Meetings          | `propose_meeting` | Google Calendar `suggest_time` + `create_event` |
+| Logging           | `log_lead` → `data/crm.jsonl` | Slack `slack_send_message`           |
+
+With no `SDR_MCP_CONFIG` set, the agent runs purely on local stubs — the safe
+default for development.
 
 ## Project layout
 
@@ -75,9 +93,11 @@ sales-agent/
 ├── main.py                  # CLI entry point
 ├── requirements.txt
 ├── .env.example
+├── mcp_servers.example.json # live integration config template
 └── concentric_sdr/
     ├── agent.py             # system prompt + tool-runner loop
-    ├── tools.py             # research / qualify / email / meeting / CRM tools
+    ├── tools.py             # local tools: qualify / email gate / meeting / CRM
+    ├── integrations.py      # remote MCP connector wiring (ZoomInfo/Gmail/...)
     ├── product.py           # Concentric product & ICP knowledge base
     └── config.py            # model + settings
 ```

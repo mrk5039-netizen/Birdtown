@@ -1,0 +1,33 @@
+[
+  {
+    "name": "zoominfo",
+    "url": "https://mcp.zoominfo.example/v1",
+    "authorization_token_env": "ZOOMINFO_MCP_TOKEN",
+    "allowed_tools": [
+      "account_research",
+      "enrich_companies",
+      "enrich_contacts",
+      "search_intent",
+      "enrich_news",
+      "search_contacts"
+    ]
+  },
+  {
+    "name": "gmail",
+    "url": "https://mcp.gmail.example/v1",
+    "authorization_token_env": "GMAIL_MCP_TOKEN",
+    "allowed_tools": ["create_draft"]
+  },
+  {
+    "name": "google_calendar",
+    "url": "https://mcp.calendar.example/v1",
+    "authorization_token_env": "GCAL_MCP_TOKEN",
+    "allowed_tools": ["suggest_time", "create_event", "list_events"]
+  },
+  {
+    "name": "slack",
+    "url": "https://mcp.slack.example/v1",
+    "authorization_token_env": "SLACK_MCP_TOKEN",
+    "allowed_tools": ["slack_send_message"]
+  }
+]
