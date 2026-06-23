@@ -88,7 +88,7 @@ a { text-decoration: none; color: inherit; }
   position: relative;
   background:
     linear-gradient(135deg, rgba(67,160,71,0.82), rgba(27,94,32,0.88)),
-    url("https://commons.wikimedia.org/wiki/Special:FilePath/Allegheny%20National%20Forest%2C%20Pennsylvania%20-%201988%20LOC%202005625960.jpg?width=1600")
+    url("https://commons.wikimedia.org/wiki/Special:FilePath/England%20-%20English%20Summer%20Forest%20%287183018142%29.jpg?width=1600")
       center/cover no-repeat;
   color: white;
   text-align: center;
@@ -228,6 +228,14 @@ a { text-decoration: none; color: inherit; }
   padding: 0.8rem;
   font-weight: 700;
   color: var(--green-deep);
+}
+
+.bird-note {
+  display: block;
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: var(--accent);
+  margin-top: 0.15rem;
 }
 
 .photo-credit {
